@@ -123,11 +123,15 @@ PlayMusic.prototype.init = function(config, callback) {
             that._settings = response.settings;
             that._allAccess = response.settings.entitlementInfo.isSubscription;
             var devices = response.settings.uploadDevice.filter(function(d) {
-                return d.deviceType === 2;
+                return d.deviceType === 2 || d.deviceType === 3;
             });
 
             if(devices.length > 0) {
-                that._deviceId = devices[0].id.slice(2);
+                var id = devices[0].id;
+                if (devices[0].deviceType === 2) {
+                    id = id.slice(2);
+                }
+                that._deviceId = id;
                 if(typeof callback === "function") callback();
             } else {
                 if(typeof callback === "function") callback();
@@ -307,6 +311,21 @@ PlayMusic.prototype.getStreamUrl = function (id, callback) {
 };
 
 /**
+ * Opens and returns a stream object
+ *
+ * @param id string - track id, hyphenated is preferred, but "nid" will work for all access tracks (not uploaded ones)
+ * @param callback function(stream) - success callback
+ */
+PlayMusic.prototype.getStream = function(id, callback) {
+    this.getStreamUrl(id, function(err, url) {
+        if(err) return callback(err);
+        https.get(url, function(stream) {
+            callback(null, stream);
+        })
+    })
+}
+
+/**
  * Searches for All Access tracks.
  *
  * @param text string - search text
@@ -317,6 +336,7 @@ PlayMusic.prototype.search = function (text, maxResults, callback) {
     var that = this;
     var qp = {
         q: text,
+        ct: '1,2,3,4,5,6,7,8,9',
         "max-results": maxResults
     };
     var qstring = querystring.stringify(qp);
@@ -660,6 +680,8 @@ PlayMusic.prototype._getSeed = function(seedId, type) {
         seed = {albumId: seedId, seedType: 4};
     } else if(type === "genre") {
         seed = {genreId: seedId, seedType: 5};
+    } else if(type === "station") {
+        seed = {curatedStationId: seedId, seedType: 9};
     }
     return seed;
 };
