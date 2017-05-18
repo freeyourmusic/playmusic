@@ -175,7 +175,7 @@ PlayMusic.prototype._oauth =  function (callback) {
             //Authorization: "GoogleLogin auth=" + that._master_token
         }
     },  function(err, data) {
-        callback(err, err ? null : pmUtil.parseKeyValues(data));
+        callback(err, err ? response : pmUtil.parseKeyValues(data));
     });
 };
 PlayMusic.prototype.login =  function (opt, callback) {
@@ -202,7 +202,7 @@ PlayMusic.prototype.login =  function (opt, callback) {
         data: querystring.stringify(data)
     },  function(err, data) {
         var response = pmUtil.parseKeyValues(data);
-        callback(err, err ? null : {androidId: opt.androidId, masterToken: response.Token});
+        callback(err, err ? response : {androidId: opt.androidId, masterToken: response.Token});
     });
 };
 
